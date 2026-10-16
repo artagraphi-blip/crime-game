@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>پرونده‌های کارآگاه</title>
+<script src="https://developer.eitaa.com/eitaa-web-app.js"></script>
+<style>
+:root{--bg:#14121a;--card:#1f1b29;--tx:#f1ece4;--mut:#a39cb3;--acc:#e0a93b;--bd:#37304a;--ok:#3ccf91;--bad:#ff6b6b;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f4efe6;--card:#fffaf0;--tx:#241f2d;--mut:#6f6880;--acc:#b5750a;--bd:#e2d8c4;--ok:#1f9d6b;--bad:#d64545;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f4efe6;--card:#fffaf0;--tx:#241f2d;--mut:#6f6880;--acc:#b5750a;--bd:#e2d8c4;--ok:#1f9d6b;--bad:#d64545;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Vazirmatn,Vazir,Tahoma,sans-serif;line-height:1.9}
+.w{max-width:620px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:6px 0}h1 span{color:var(--acc)}
+h3{margin:0 0 6px;font-size:17px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin-bottom:12px}
+button{font:inherit;color:var(--tx);cursor:pointer}
+.btn{width:100%;border:0;border-radius:12px;background:var(--acc);color:#1a1405;font-weight:800;padding:10px;margin-top:10px}
+.ghost{background:none;border:1px solid var(--bd);color:var(--tx)}
+.back{background:none;border:0;color:var(--acc);font-weight:600;padding:0;margin-bottom:8px}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:4px;margin-bottom:12px}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);padding:7px 2px;border-radius:10px;font-size:13px;font-weight:600}
+.tabs button.on{background:var(--acc);color:#1a1405}
+.item{display:block;width:100%;text-align:right;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-top:8px}
+.item small{display:block;color:var(--mut)}
+.clue{border-right:3px solid var(--acc);padding:4px 10px;margin-top:8px;background:var(--bg);border-radius:8px}
+.tag{display:inline-block;border-radius:99px;padding:0 10px;font-size:12px;margin-top:6px}
+.tag.ok{background:color-mix(in srgb,var(--ok) 22%,transparent);color:var(--ok)}
+.tag.bad{background:color-mix(in srgb,var(--bad) 22%,transparent);color:var(--bad)}
+.lock{opacity:.75}
+.msg{margin-top:10px;padding:10px;border-radius:12px;background:var(--bg);border:1px dashed var(--acc)}
+</style>
+</head>
+<body>
+<div class="w" id="app"></div>
+<script>
+const C={
+ title:"قتل در عمارت سپیده‌دم",
+ intro:"شبی بارانی است. آقای کیانی، کلکسیونر ثروتمند، در کتابخانه‌ی عمارتش مرده پیدا شده؛ جسد ساعت ۹:۵۰ کشف شده. جز او فقط چهار نفر در عمارت بوده‌اند. تو کارآگاه پرونده‌ای: صحنه‌ها را بگرد، بازجویی کن، مدرک‌ها را با ادعاها مقایسه کن و قاتل را پیدا کن.",
+ locs:[
+  {n:"کتابخانه",i:"📚",d:"صحنه‌ی جرم. بوی کاغذ کهنه و باران از پنجره‌ی نیمه‌باز.",c:["clock","will"]},
+  {n:"باغ",i:"🌧️",d:"خاک نمدار و گِلی است؛ ردپاهایی تا زیر پنجره‌ی کتابخانه می‌رسد.",c:["shoes"]},
+  {n:"آشپزخانه",i:"🍵",d:"سینی چای هنوز روی میز است و بوی دارچین می‌آید.",c:["tea"]},
+  {n:"اتاق نگهبانی",i:"🚪",d:"دفتر ورود و خروج روی میز باز است.",c:["log"]},
+  {n:"دفتر کار",i:"☎️",d:"میز منشی، تلفن و صورت‌حساب‌های مرتب.",c:["call"]}],
+ clues:{
+  clock:"ساعت مچی کیانی شکسته و روی ۹:۲۰ ایستاده؛ زمان احتمالی مرگ.",
+  will:"وصیت‌نامه‌ی نیمه‌کاره: کیانی می‌خواست وکیل قدیمی‌اش را عزل کند و حق‌الوکاله‌اش را قطع کند.",
+  shoes:"ردپای گِلی کفش رسمی مردانه با کف صاف، از باغ تا پنجره‌ی کتابخانه.",
+  tea:"سه فنجان چای آماده شده بود و فنجان سوم دست‌نخورده مانده؛ کیانی منتظر مهمان بود.",
+  log:"دفتر نگهبانی: ماشین دکتر نادری ساعت ۹:۴۰ از عمارت خارج شده.",
+  call:"صورت‌حساب تلفن: سارا از ۹:۱۵ تا ۹:۴۵ با یک مشتری تماس داشته (تماس ثبت‌شده)."},
+ sus:[
+  {id:"sara",n:"سارا",r:"منشی کیانی",st:"«از ۹ تا ۱۰ توی دفتر پای تلفن بودم. آقای کیانی خیلی بهم اعتماد داشت.»",need:"call",re:"«خب بله، با مشتری حرف می‌زدم. سوابق تلفن رو چک کنید.» ادعایش مدرک دارد.",clear:1},
+  {id:"bahram",n:"بهرام",r:"برادرزاده‌ی کیانی",st:"«توی باغ سیگار می‌کشیدم. عمو تازگی‌ها باهام سرِ ارث دعوا داشت، ولی من آدم‌کش نیستم!»",need:"shoes",re:"«کفش‌هام ورزشی و کف‌دارِ، نگاه کنید!» کفشش با ردپا نمی‌خواند.",clear:1},
+  {id:"mahin",n:"مهین‌خانم",r:"خانه‌دار",st:"«توی آشپزخانه چای دم می‌کردم. آقا گفته بود مهمانی دارد، اما نگفت کیست.»",need:"tea",re:"«بله، فنجان سوم برای مهمان بود. فقط نمی‌دانم کی آمد.» حرفش با مدارک می‌خواند.",clear:1},
+  {id:"nadari",n:"دکتر نادری",r:"وکیل کیانی",st:"«من ساعت ۹ از عمارت رفتم. حتی قبل از بارانِ شدید. دیگر چیزی نمی‌دانم.»",need:"log",re:"«آه… شاید ساعت رو اشتباه یادم مانده.» رنگش پرید؛ ادعایش با دفتر نگهبانی نمی‌خواند.",clear:0}],
+ killer:"nadari",
+ solve:"قاتل دکتر نادری بود. کیانی می‌خواست او را عزل کند (وصیت‌نامه‌ی نیمه‌کاره). نادری گفت ساعت ۹ رفته، اما دفتر نگهبانی خروج ماشینش را ۹:۴۰ ثبت کرده؛ یعنی هنگام مرگ (۹:۲۰) هنوز در عمارت بود. ردپای کفش رسمی هم به او می‌خورد، نه کفش ورزشی بهرام. سارا تماس ثبت‌شده داشت و مهین‌خانم در آشپزخانه بود."
+};
+const SOON=[["ردپای شب‌زنده‌دار","🌙"],["سرقت از موزه‌ی قدیمی","🏛️"],["ناپدید در قطار شبانه","🚂"]];
+
+const app=document.getElementById("app");
+let W=null;try{W=window.Eitaa&&window.Eitaa.WebApp;if(W){W.ready&&W.ready();W.expand&&W.expand()}}catch(e){}
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e};
+const back=on=>{try{if(W&&W.BackButton)on?W.BackButton.show():W.BackButton.hide()}catch(e){}};
+try{if(W&&W.onEvent)W.onEvent("backButtonClicked",home)}catch(e){}
+const store=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+
+let S;
+function home(){
+  app.innerHTML="";back(false);
+  const h=el("h1");h.innerHTML="پرونده‌های <span>کارآگاه</span> 🕵️";app.appendChild(h);
+  app.appendChild(el("p","sub","هر پرونده یک معما است. مدرک جمع کن، بازجویی کن و قاتل را پیدا کن."));
+  const c=el("div","card");c.appendChild(el("h3","","پرونده ۱: "+C.title+" (رایگان)"));
+  const best=store("best1");c.appendChild(el("div","sub",best?"بهترین امتیاز تو: "+"⭐".repeat(+best):"هنوز حل نکرده‌ای."));
+  const b=el("button","btn","شروع پرونده");b.onclick=start;c.appendChild(b);app.appendChild(c);
+  SOON.forEach((s,i)=>{const k=el("div","card lock");k.appendChild(el("h3","","🔒 پرونده "+(i+2)+": "+s[0]+" "+s[1]));
+    k.appendChild(el("div","sub","با اشتراک ماهانه باز می‌شود."));app.appendChild(k)});
+  const p=el("div","card");p.appendChild(el("h3","","اشتراک ماهانه"));
+  p.appendChild(el("div","sub","هر ماه پرونده‌های تازه‌ی سخت‌تر و بدون محدودیت. (نسخه‌ی نمایشی: پرداخت هنوز وصل نیست)"));
+  const pb=el("button","btn ghost","به‌زودی");pb.onclick=()=>msg("اشتراک ماهانه به‌زودی فعال می‌شود.");p.appendChild(pb);app.appendChild(p);
+}
+function msg(t){try{if(W&&W.showAlert)return W.showAlert(t)}catch(e){}alert(t)}
+function start(){S={found:[],asked:{},tries:0,tab:0,done:false};view()}
+
+function view(){
+  app.innerHTML="";back(true);
+  const bk=el("button","back","→ فهرست پرونده‌ها");bk.onclick=home;app.appendChild(bk);
+  app.appendChild(el("h1","",C.title));
+  const t=el("div","tabs");["صحنه‌ها","مظنونین","دفترچه","اتهام"].forEach((n,i)=>{
+    const b=el("button",i===S.tab?"on":"",n+(i===2?" ("+S.found.length+")":""));b.onclick=()=>{S.tab=i;view()};t.appendChild(b)});
+  app.appendChild(t);
+  [tabLocs,tabSus,tabNote,tabAccuse][S.tab]();
+  window.scrollTo(0,0);
+}
+function note(box,id){const d=el("div","clue","🔎 "+C.clues[id]);box.appendChild(d)}
+
+function tabLocs(){
+  const c=el("div","card");c.appendChild(el("p","",C.intro));
+  C.locs.forEach((l,i)=>{
+    const b=el("button","item",l.i+" "+l.n);b.onclick=()=>{
+      l.c.forEach(id=>{if(!S.found.includes(id))S.found.push(id)});
+      const box=el("div","msg");box.appendChild(el("div","",l.d));l.c.forEach(id=>note(box,id));
+      const old=c.querySelector(".msg");if(old)old.remove();c.appendChild(box);
+      document.querySelector(".tabs button:nth-child(3)").textContent="دفترچه ("+S.found.length+")";
+    };c.appendChild(b)});
+  app.appendChild(c);
+}
+function tabSus(){
+  C.sus.forEach(s=>{
+    const c=el("div","card");c.appendChild(el("h3","",s.n+" — "+s.r));c.appendChild(el("div","",s.st));
+    const out=el("div");
+    const show=()=>{out.innerHTML="";const st=S.asked[s.id];if(st){out.appendChild(el("div","msg",s_re(s)));out.appendChild(el("span","tag "+(s.clear?"ok":"bad"),s.clear?"✔ ادعایش تأیید شد":"⚠ مشکوک"))}};
+    const b=el("button","btn ghost","مقابله با مدرک");
+    b.onclick=()=>{if(S.found.includes(s.need)){S.asked[s.id]=1;show()}else{out.innerHTML="";out.appendChild(el("div","msg","هنوز مدرکی برای مقابله با او نداری؛ صحنه‌ها را بگرد."))}};
+    c.appendChild(b);c.appendChild(out);show();app.appendChild(c);
+  });
+}
+function s_re(s){return s.re}
+function tabNote(){
+  const c=el("div","card");c.appendChild(el("h3","","دفترچه‌ی مدارک"));
+  if(!S.found.length)c.appendChild(el("div","sub","هنوز مدرکی پیدا نکرده‌ای."));
+  S.found.forEach(id=>note(c,id));app.appendChild(c);
+}
+function tabAccuse(){
+  const c=el("div","card");c.appendChild(el("h3","","قاتل کیست؟"));
+  c.appendChild(el("div","sub","فرصت اتهام: "+Math.max(0,3-S.tries)+" بار"));
+  const res=el("div");
+  C.sus.forEach(s=>{
+    const b=el("button","item",s.n+" — "+s.r);
+    b.onclick=()=>{
+      if(S.done)return;
+      if(s.id===C.killer){
+        S.done=true;let st=S.found.length>=C.sus.length+2?3:S.found.length>=4?2:1;if(S.tries>0)st=Math.max(1,st-1);
+        const old=+store("best1")||0;if(st>old)store("best1",st);
+        res.innerHTML="";const m=el("div","msg","🎉 درست گفتی!\n\n"+C.solve+"\n\nامتیاز: "+"⭐".repeat(st));m.style.whiteSpace="pre-wrap";res.appendChild(m);
+      }else{
+        S.tries++;res.innerHTML="";
+        if(S.tries>=3){S.done=true;const m=el("div","msg","پرونده بسته شد. 😔\n\n"+C.solve);m.style.whiteSpace="pre-wrap";res.appendChild(m)}
+        else res.appendChild(el("div","msg","❌ مدارک این را تأیید نمی‌کند. بیشتر بگرد و ادعاها را با مدرک مقایسه کن."));
+      }
+    };c.appendChild(b);
+  });
+  c.appendChild(res);app.appendChild(c);
+}
+home();
+</script>
+</body>
+</html>
